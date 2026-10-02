@@ -10,7 +10,7 @@ How to run Cairn on your machine, from a fresh clone to AI streaming in the assi
   - [Resend](https://resend.com) — transactional email
   - [Paystack](https://paystack.com) — payments (GHS account)
   - [Cloudinary](https://cloudinary.com) — file uploads
-  - [Anthropic](https://console.anthropic.com) — Claude API
+  - [Google AI Studio](https://aistudio.google.com/app/apikey) — Gemini API
 
 Test keys work for everything except live billing.
 
@@ -73,11 +73,11 @@ CLOUDINARY_API_SECRET=…
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud
 ```
 
-### AI (Anthropic)
+### AI (Google Gemini)
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-api03-…
-ANTHROPIC_MODEL=claude-sonnet-4-5
+GEMINI_API_KEY=…
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 Without a key, AI surfaces show "AI is not configured" inline instead of failing.
@@ -157,7 +157,7 @@ Visit `/signin` → enter your email → check inbox (or Resend logs) → click 
 
 ## Test the AI
 
-Once you have an Anthropic key with credits:
+Once you have a Gemini API key:
 
 ```bash
 # Set env, then
@@ -167,7 +167,7 @@ curl -X POST http://localhost:3000/api/ai/chat \
   -d '{"messages":[{"role":"user","content":"hi"}],"context":{"tasks":[],"habits":[],"goals":[]}}'
 ```
 
-In the UI: open the assistant page (`g a`), send a message — Claude streams in.
+In the UI: open the assistant page (`g a`), send a message — Gemini streams in.
 
 ---
 
@@ -198,7 +198,7 @@ Sign in → `/settings/billing` → **Upgrade to Pro**. You'll be redirected to 
 |---|---|---|
 | Sign-in email never arrives | Sender domain not verified in Resend | Resend dashboard → Domains |
 | `AUTH_SECRET is not set` on boot | Missing env | Generate one (see above) |
-| Anthropic "credit balance too low" | Empty account | Top up at console.anthropic.com |
+| Gemini quota exceeded | Quota limit reached | Check quotas at ai.google.dev / console.cloud.google.com |
 | Push test fails silently | Browser blocked notifications | Browser settings → Notifications → allow site |
 | Onboarding loops back | Cookie not being set | Check that you're on `localhost` not `127.0.0.1` |
 | Hydration mismatch on store-backed pages | Wrong import path | Use `useLive*` selectors from `lib/store/selectors` |

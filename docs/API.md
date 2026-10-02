@@ -283,7 +283,7 @@ Break a task into 3–6 subtasks.
 { "subtasks": ["Define top three outcomes", "Draft Gantt", "Get peer review", "Decide and ship"] }
 
 // Response (failure)
-{ "error": "Anthropic account has no credits", "detail": "…", "kind": "no_credit" }
+{ "error": "Gemini quota or credit limit reached", "detail": "…", "kind": "no_credit" }
 ```
 
 ### `POST /api/ai/diagnose`  — *streaming*

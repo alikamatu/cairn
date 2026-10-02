@@ -57,14 +57,14 @@ export function PlanMyDayModal({
       open={open}
       onOpenChange={onOpenChange}
       title="Plan my day"
-      description="Claude reads your open tasks and habits, then proposes a realistic schedule."
+      description="Gemini reads your open tasks and habits, then proposes a realistic schedule."
       size="lg"
     >
       <div className="space-y-4">
         <textarea
           value={hints}
           onChange={(e) => setHints(e.target.value)}
-          placeholder="Optional: anything Claude should know? Meetings, energy, constraints…"
+          placeholder="Optional: anything Gemini should know? Meetings, energy, constraints…"
           rows={2}
           className="block w-full resize-y rounded-lg bg-surface-2 p-3 text-[13.5px] leading-relaxed text-fg outline-none placeholder:text-fg-subtle"
         />

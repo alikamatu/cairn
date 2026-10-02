@@ -40,7 +40,7 @@ No external request modifies state without passing one of these checks.
 |---|---|---|
 | `AUTH_SECRET`               | HMAC for magic-link, session, unsubscribe tokens | Server only |
 | `PAYSTACK_SECRET_KEY`       | Paystack API auth + webhook signature verify       | Server only |
-| `ANTHROPIC_API_KEY`         | Claude API                                          | Server only |
+| `GEMINI_API_KEY`            | Google Gemini API                                   | Server only |
 | `RESEND_API_KEY`            | Outbound email                                      | Server only |
 | `CLOUDINARY_API_SECRET`     | Signed upload URLs                                  | Server only |
 | `VAPID_PRIVATE_KEY`         | Web Push signing                                    | Server only |
@@ -148,7 +148,7 @@ const Input = z.object({
 });
 ```
 
-Limits are explicit (`.max(120)`) so an attacker can't blow up memory with multi-megabyte fields. The Anthropic prompts likewise cap `body.max(40_000)` and `messages.max(40)`.
+Limits are explicit (`.max(120)`) so an attacker can't blow up memory with multi-megabyte fields. The Gemini prompts likewise cap `body.max(40_000)` and `messages.max(40)`.
 
 ---
 
@@ -168,7 +168,7 @@ lib/auth/magic-token.ts
 lib/auth/unsub-token.ts
 lib/auth/admin.ts
 lib/auth/oauth/*
-lib/ai/anthropic.ts · lib/ai/prompts.ts · lib/ai/stream.ts
+lib/ai/gemini.ts · lib/ai/prompts.ts · lib/ai/stream.ts
 lib/billing/paystack.ts · lib/billing/subscription.ts
 lib/cloudinary/sign.ts
 lib/mail/resend.ts · lib/mail/templates/*
@@ -195,7 +195,7 @@ The 404 response means the route's existence isn't leaked to unauthenticated or 
 
 The privacy policy ([`/privacy`](../app/(marketing)/privacy/page.tsx)) is the authoritative statement. The short version of what's enforced in code:
 
-- **No training on your data.** Cairn forwards your context to Anthropic *per request*. Anthropic's API contract is that they don't train on API content. No third-party analytics see your tasks or notes.
+- **No training on your data.** Cairn forwards your context to Google Gemini *per request*. Paid/Standard API tiers don't train on your content. No third-party analytics see your tasks or notes.
 - **No advertising.** No ad SDKs in the bundle.
 - **Exports any time.** Settings → Data → JSON / Markdown / CSV. The export is generated entirely on the client from your own store.
 - **Account deletion.** Soft-delete works today; full account deletion is on the roadmap (it requires the DB layer).
@@ -206,7 +206,7 @@ The privacy policy ([`/privacy`](../app/(marketing)/privacy/page.tsx)) is the au
 - **Resend** — transactional email
 - **Paystack** — payments
 - **Cloudinary** — image uploads
-- **Anthropic** — AI
+- **Google (Gemini)** — AI
 
 Each is contractually a data processor; none receive your full content for training.
 

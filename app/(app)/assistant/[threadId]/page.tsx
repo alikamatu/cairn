@@ -478,14 +478,14 @@ function Typing() {
 
 function friendlyAiError(raw: string): string {
   const lower = raw.toLowerCase();
-  if (lower.includes("credit balance") || lower.includes("credit_balance")) {
-    return "**Anthropic account has no credits.** Add credits at [console.anthropic.com](https://console.anthropic.com) → Plans & Billing, then try again.";
+  if (lower.includes("credit balance") || lower.includes("credit_balance") || lower.includes("quota") || lower.includes("resource_exhausted")) {
+    return "**Gemini quota or credits exhausted.** Check your quota at [ai.google.dev](https://ai.google.dev) or [console.cloud.google.com](https://console.cloud.google.com), then try again.";
   }
   if (lower.includes("rate limit") || lower.includes("429")) {
     return "**Hit a rate limit.** Try again in a minute.";
   }
-  if (lower.includes("401") || lower.includes("invalid x-api-key")) {
-    return "**AI key was rejected.** Check `ANTHROPIC_API_KEY` and try again.";
+  if (lower.includes("401") || lower.includes("invalid x-api-key") || lower.includes("api_key_invalid") || lower.includes("permission_denied")) {
+    return "**AI key was rejected.** Check `GEMINI_API_KEY` and try again.";
   }
   return `**Assistant error.** ${raw}`;
 }

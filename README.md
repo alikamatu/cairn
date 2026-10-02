@@ -18,7 +18,7 @@ npm install
 npm run dev                       # http://localhost:3000
 ```
 
-You'll need accounts for Resend (email), Paystack (billing, GHS), Cloudinary (uploads), and Anthropic (Claude API). Web-push VAPID keys are generated locally with one command. See [docs/SETUP.md](docs/SETUP.md).
+You'll need accounts for Resend (email), Paystack (billing, GHS), Cloudinary (uploads), and Google Gemini (AI API). Web-push VAPID keys are generated locally with one command. See [docs/SETUP.md](docs/SETUP.md).
 
 ---
 
@@ -46,7 +46,7 @@ You'll need accounts for Resend (email), Paystack (billing, GHS), Cloudinary (up
 - **Notes** — markdown editor with live preview, AI assistant (continue, summarize, plan, journal prompts), backlinks to tasks/goals, daily journal
 - **Reviews** — daily shutdown / weekly / monthly / yearly with AI-drafted starting points
 - **Stats** — animated SVG line chart, by-project breakdown, time-of-day histogram, full habit heatmaps
-- **Assistant** — streaming Claude chat with slash commands and full app context
+- **Assistant** — streaming Gemini chat with slash commands and full app context
 - **Trash** — soft-delete with 30-day restore, auto-purge on rehydrate
 - **Themes** — 5 themes (obsidian, paper, oceanic, sunset, forest)
 - **Keyboard** — command palette (⌘K), chord nav (`g t`, `g j`, …), cheatsheet (`?`), quick-add (`N`)
@@ -56,8 +56,8 @@ You'll need accounts for Resend (email), Paystack (billing, GHS), Cloudinary (up
 
 - **Production-shape code** — typed entities, validated boundaries, server-only modules, signed cookies
 - **Zustand store** with persist middleware — single source of truth across pages
-- **Real integrations** — Resend (email magic links), Paystack (subscriptions in GHS), Cloudinary (signed uploads), Anthropic (streaming chat + tool prompts), VAPID web push
-- **No vendor lock-in** — swap MongoDB for Postgres, Claude for another LLM, Paystack for Stripe; interfaces are clean
+- **Real integrations** — Resend (email magic links), Paystack (subscriptions in GHS), Cloudinary (signed uploads), Google Gemini (streaming chat + tool prompts), VAPID web push
+- **No vendor lock-in** — swap MongoDB for Postgres, Gemini for another LLM, Paystack for Stripe; interfaces are clean
 
 ---
 
@@ -70,7 +70,7 @@ State          Zustand with persist (localStorage)
 Auth           Magic-link email · OAuth (Google, GitHub, Apple — scaffold)
 Email          Resend
 Payments       Paystack (GHS) — Pro GH₵70/mo or GH₵640/yr
-AI             Anthropic Claude Sonnet 4.5 (streaming + non-streaming)
+AI             Google Gemini 2.5 Flash (streaming + non-streaming)
 Uploads        Cloudinary (signed direct upload)
 Push           Web Push Protocol with VAPID
 PWA            Custom service worker (no Workbox)

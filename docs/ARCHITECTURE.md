@@ -185,7 +185,7 @@ Admin pages additionally check `isAdmin(session.email)` against a comma-separate
 
 ### Provider
 
-Anthropic Claude Sonnet 4.5 via the official SDK (`@anthropic-ai/sdk`). Client singleton at [`lib/ai/anthropic.ts`](../lib/ai/anthropic.ts).
+Google Gemini 2.5 Flash via the official SDK (`@google/genai`). Client singleton at [`lib/ai/gemini.ts`](../lib/ai/gemini.ts).
 
 ### Prompts
 
@@ -209,12 +209,12 @@ Helper at [`lib/ai/stream.ts`](../lib/ai/stream.ts) returns a `ReadableStream<Ui
 
 ### Error handling
 
-`classifyAiError()` maps raw Anthropic errors to `{ kind, title, body }`:
+`classifyAiError()` maps raw Gemini errors to `{ kind, title, body }`:
 
-- `no_credit` → "Anthropic account has no credits."
+- `no_credit` → "Gemini quota or credit limit reached."
 - `rate_limit` → "Hit a rate limit."
 - `auth` → "AI key was rejected."
-- `overloaded` → "Anthropic is overloaded."
+- `overloaded` → "Gemini is overloaded."
 
 Errors are written into the stream itself (as markdown), so the chat UI renders them like any other reply — no separate error paths.
 

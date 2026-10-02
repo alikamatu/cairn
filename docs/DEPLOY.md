@@ -79,8 +79,8 @@ CLOUDINARY_API_KEY
 CLOUDINARY_API_SECRET
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 
-ANTHROPIC_API_KEY            # production key with credits
-ANTHROPIC_MODEL              # e.g. claude-sonnet-4-5
+GEMINI_API_KEY               # production key
+GEMINI_MODEL                 # e.g. gemini-2.5-flash
 
 VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY
@@ -188,7 +188,7 @@ After `vercel --prod`:
 - [ ] **Sign in** with a real email — Resend log shows delivered, magic link works
 - [ ] **Subscribe to push** in Settings → Notifications — test notification arrives
 - [ ] **Upgrade to Pro** (test mode first) — Paystack callback flips the session, invoice appears
-- [ ] **Anthropic** — chat streams, AI plans generate
+- [ ] **Gemini AI** — chat streams, AI plans generate
 - [ ] `/api/cron/reminders` returns 401 without token, 200 with token
 - [ ] Google Search Console — submit sitemap, verify ownership
 - [ ] **Vercel Logs** — no warnings about middleware (we use `proxy.ts`), no `crypto` errors
@@ -205,7 +205,7 @@ Cairn doesn't ship a custom CSP yet. Add one in `next.config.ts` under `async he
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-  "Content-Security-Policy": "default-src 'self'; img-src 'self' https://api.dicebear.com https://res.cloudinary.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.anthropic.com https://api.paystack.co https://api.cloudinary.com; font-src 'self' data:; frame-src https://checkout.paystack.com"
+  "Content-Security-Policy": "default-src 'self'; img-src 'self' https://api.dicebear.com https://res.cloudinary.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com https://api.paystack.co https://api.cloudinary.com; font-src 'self' data:; frame-src https://checkout.paystack.com"
 }
 ```
 
