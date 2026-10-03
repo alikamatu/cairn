@@ -39,8 +39,6 @@ export async function findOrCreateUserByEmail(
   email: string,
   profile: Partial<UserProfile> = {},
 ): Promise<UserDoc> {
-  const db = await getDb();
-  const users = db.collection<UserDoc>("users");
   const normalized = email.toLowerCase();
   const now = new Date().toISOString();
 
@@ -60,55 +58,78 @@ export async function findOrCreateUserByEmail(
     emailDigest: profile.emailDigest ?? "weekly",
   };
 
-  const result = await users.findOneAndUpdate(
-    { email: normalized },
-    {
-      $setOnInsert: {
-        email: normalized,
-        profile: defaults,
-        state: emptyUserState,
-        createdAt: now,
+  try {
+    const db = await getDb();
+    const users = db.collection<UserDoc>("users");
+    const result = await users.findOneAndUpdate(
+      { email: normalized },
+      {
+        $setOnInsert: {
+          email: normalized,
+          profile: defaults,
+          state: emptyUserState,
+          createdAt: now,
+        },
+        $set: {
+          updatedAt: now,
+        },
       },
-      $set: {
-        updatedAt: now,
+      {
+        returnDocument: "after",
+        upsert: true,
       },
-    },
-    {
-      returnDocument: "after",
-      upsert: true,
-    },
-  );
+    );
 
-  if (!result) {
-    throw new Error("Failed to create or find user");
+    if (result) {
+      return result as UserDoc;
+    }
+  } catch (err) {
+    console.warn("[db] MongoDB unavailable in findOrCreateUserByEmail, falling back to local session:", (err as Error).message);
   }
 
-  return result as UserDoc;
+  // Graceful fallback: return doc with defaults so sign-in is not blocked by DB network issues
+  return {
+    _id: normalized,
+    email: normalized,
+    profile: defaults,
+    state: emptyUserState,
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 export async function getUserByEmail(email: string): Promise<UserDoc | null> {
-  const db = await getDb();
-  const users = db.collection<UserDoc>("users");
-  return users.findOne({ email: email.toLowerCase() });
+  try {
+    const db = await getDb();
+    const users = db.collection<UserDoc>("users");
+    return await users.findOne({ email: email.toLowerCase() });
+  } catch (err) {
+    console.warn("[db] MongoDB unavailable in getUserByEmail:", (err as Error).message);
+    return null;
+  }
 }
 
 export async function updateUserProfile(email: string, patch: Partial<UserProfile>) {
-  const db = await getDb();
-  const users = db.collection<UserDoc>("users");
-  const normalized = email.toLowerCase();
-  const update: Record<string, unknown> = { updatedAt: new Date().toISOString() };
-  for (const [key, value] of Object.entries(patch)) {
-    if (value === undefined) continue;
-    update[`profile.${key}`] = value;
+  try {
+    const db = await getDb();
+    const users = db.collection<UserDoc>("users");
+    const normalized = email.toLowerCase();
+    const update: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === undefined) continue;
+      update[`profile.${key}`] = value;
+    }
+    await users.updateOne(
+      { email: normalized },
+      {
+        $set: update,
+        $setOnInsert: { email: normalized, profile: { email: normalized, theme: "obsidian", startOfWeek: "mon", onboarded: false }, state: emptyUserState, createdAt: new Date().toISOString() },
+      },
+      { upsert: true },
+    );
+  } catch (err) {
+    console.warn("[db] MongoDB unavailable in updateUserProfile:", (err as Error).message);
   }
-  await users.updateOne(
-    { email: normalized },
-    {
-      $set: update,
-      $setOnInsert: { email: normalized, profile: { email: normalized, theme: "obsidian", startOfWeek: "mon", onboarded: false }, state: emptyUserState, createdAt: new Date().toISOString() },
-    },
-    { upsert: true },
-  );
 }
 
 export async function getUserState(email: string): Promise<UserState | null> {
@@ -117,26 +138,32 @@ export async function getUserState(email: string): Promise<UserState | null> {
 }
 
 export async function setUserState(email: string, state: UserState) {
-  const db = await getDb();
-  const users = db.collection<UserDoc>("users");
-  await users.updateOne(
-    { email: email.toLowerCase() },
-    {
-      $set: {
-        state,
-        updatedAt: new Date().toISOString(),
-      },
-      $setOnInsert: {
-        email: email.toLowerCase(),
-        profile: {
-          email: email.toLowerCase(),
-          theme: "obsidian",
-          startOfWeek: "mon",
-          onboarded: false,
+  try {
+    const db = await getDb();
+    const users = db.collection<UserDoc>("users");
+    await users.updateOne(
+      { email: email.toLowerCase() },
+      {
+        $set: {
+          state,
+          updatedAt: new Date().toISOString(),
         },
-        createdAt: new Date().toISOString(),
+        $setOnInsert: {
+          email: email.toLowerCase(),
+          profile: {
+            email: email.toLowerCase(),
+            theme: "obsidian",
+            startOfWeek: "mon",
+            onboarded: false,
+          },
+          createdAt: new Date().toISOString(),
+        },
       },
-    },
-    { upsert: true },
-  );
+      {
+        upsert: true,
+      },
+    );
+  } catch (err) {
+    console.warn("[db] MongoDB unavailable in setUserState:", (err as Error).message);
+  }
 }

@@ -2,7 +2,8 @@ import { MongoClient } from "mongodb";
 
 const options = {
   maxPoolSize: 10,
-  connectTimeoutMS: 10000,
+  connectTimeoutMS: 4000,
+  serverSelectionTimeoutMS: 4000,
 };
 
 type GlobalMongo = {
