@@ -61,6 +61,12 @@ export async function findOrCreateUserByEmail(
   try {
     const db = await getDb();
     const users = db.collection<UserDoc>("users");
+
+    // Build $set for fields that OAuth may provide on each login
+    const setFields: Record<string, unknown> = { updatedAt: now };
+    if (profile.name) setFields["profile.name"] = profile.name;
+    if (profile.avatarUrl) setFields["profile.avatarUrl"] = profile.avatarUrl;
+
     const result = await users.findOneAndUpdate(
       { email: normalized },
       {
@@ -70,9 +76,7 @@ export async function findOrCreateUserByEmail(
           state: emptyUserState,
           createdAt: now,
         },
-        $set: {
-          updatedAt: now,
-        },
+        $set: setFields,
       },
       {
         returnDocument: "after",
@@ -87,11 +91,21 @@ export async function findOrCreateUserByEmail(
     console.warn("[db] MongoDB unavailable in findOrCreateUserByEmail, falling back to local session:", (err as Error).message);
   }
 
-  // Graceful fallback: return doc with defaults so sign-in is not blocked by DB network issues
+  // Graceful fallback: try to recover onboarded state from the existing session cookie
+  // so we don't force re-onboarding when the DB is temporarily unreachable
+  let existingOnboarded = defaults.onboarded;
+  try {
+    const { getSession } = await import("@/lib/auth/session");
+    const session = await getSession();
+    if (session?.email === normalized && session.onboarded) {
+      existingOnboarded = true;
+    }
+  } catch { /* no session available */ }
+
   return {
     _id: normalized,
     email: normalized,
-    profile: defaults,
+    profile: { ...defaults, onboarded: existingOnboarded },
     state: emptyUserState,
     createdAt: now,
     updatedAt: now,
