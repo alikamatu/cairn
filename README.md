@@ -111,6 +111,7 @@ npm run dev     Start dev server on :3000 (Turbopack)
 npm run build   Production build
 npm run start   Run production build
 npm run lint    ESLint
+npm test        Unit tests (Vitest)
 ```
 
 ---

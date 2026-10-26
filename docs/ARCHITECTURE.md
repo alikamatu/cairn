@@ -89,13 +89,19 @@ Use these in list pages. Detail pages read raw `useStore((s) => s.X.find(…))` 
 
 ### Hydration
 
-The store is initialized with seed data (see [`lib/store/seed.ts`](../lib/store/seed.ts)) for new users. On rehydrate, `sweepExpiredTrash()` purges anything past the 30-day retention window. Components subscribing to slices via `useStore((s) => s.X)` re-render only when that slice changes.
+The store starts empty (see [`lib/store/persist.ts`](../lib/store/persist.ts)). Sample data from [`lib/store/seed.ts`](../lib/store/seed.ts) is only loaded via the store `reset()` helper. On rehydrate, `sweepExpiredTrash()` purges anything past the 30-day retention window.
 
-### Why not a database?
+### Mongo sync (local-first + server mirror)
 
-A real product needs server-side persistence (multi-device sync, server-side cron access to user data, deletion audit). Cairn's data layer is local-first by design: every action runs synchronously in the client store, the UI never blocks on the network. The same store API will continue to work when MongoDB / Postgres lands — replace the action bodies with `fetch("/api/…")` calls; component contracts don't change.
+Cairn is still local-first for interaction latency: every mutation updates Zustand immediately. [`StoreSync`](../components/store/sync.tsx) then:
 
-The session cookie carries small server-relevant fields (theme, timezone, plan, customer code, push subscription marker) so server-rendered surfaces and API routes work without a database.
+1. **Loads** `/api/user/data` after hydration and **merges** local + server entity-by-entity ([`mergePersistedState`](../lib/store/merge.ts)).
+2. **Debounced-saves** the snapshot back with optimistic concurrency (`baseUpdatedAt` / `stateUpdatedAt`). A `409` triggers a merge + retry.
+3. **Validates** payloads with Zod entity schemas ([`lib/store/schemas.ts`](../lib/store/schemas.ts)).
+
+MongoDB (`MONGODB_URI`) also backs user profiles, used magic-link tokens, push subscriptions, and billing plan state. When Mongo is unreachable, auth and the client store still work; sync simply no-ops until the DB returns.
+
+The session cookie still carries small server-relevant fields (theme, timezone, plan, customer code) so SSR and API routes can function without a round-trip.
 
 ---
 
@@ -202,7 +208,7 @@ All system prompts live in [`lib/ai/prompts.ts`](../lib/ai/prompts.ts). They sha
 
 ### Context fan-out
 
-Clients send a snapshot of relevant data with each call (see [`lib/ai/context.ts`](../lib/ai/context.ts)). The server doesn't have direct access to user data (the source of truth is `localStorage`), so the client packages tasks/habits/goals into a typed `context` payload, validates with Zod on the server, and the prompt builders fold it into the system message.
+Clients send a snapshot of relevant data with each call (see [`lib/ai/context.ts`](../lib/ai/context.ts)). The assistant still receives context from the client (fast, scoped), even though a Mongo mirror exists for sync. Zod validates the payload server-side. In production, AI routes require an active Pro plan ([`lib/ai/guard.ts`](../lib/ai/guard.ts)) and are rate-limited.
 
 ### Streaming
 
@@ -232,8 +238,8 @@ Client                      /api/billing/checkout      Paystack
                                                           ↓
                                 /api/billing/callback   /api/billing/webhook
                                   ├─ verifyTransaction   ← server-to-server
-                                  └─ flip session.plan  → log event
-                                                          (TODO: persist in DB)
+                                  └─ flip session.plan  → update users.profile
+                                                          (plan / renewsAt / customer)
 ```
 
 Files:
@@ -241,9 +247,10 @@ Files:
 - [`lib/billing/paystack.ts`](../lib/billing/paystack.ts) — fetch-based client (`initTransaction`, `verifyTransaction`, `listCustomerByEmail`, `listTransactionsForCustomer`, `verifyWebhookSignature`)
 - [`lib/billing/plans.ts`](../lib/billing/plans.ts) — pricing source of truth, GHS currency, period math
 - [`lib/billing/subscription.ts`](../lib/billing/subscription.ts) — `readSubscription(session)` returns `{ tier, interval, renewsAt, active, daysUntilRenewal }`
+- [`lib/billing/require-pro.ts`](../lib/billing/require-pro.ts) — Pro gate that prefers Mongo profile over cookie
 - `app/api/billing/{checkout,callback,webhook,cancel,invoices}/route.ts`
 
-Webhook signature is HMAC-SHA512 of the raw body (header: `x-paystack-signature`). Auto-renewal beyond the first period requires persistent storage of `customer_code` + `authorization` (currently held only in the session cookie — a server-side jobs runner needs DB access).
+Webhook signature is HMAC-SHA512 of the raw body (header: `x-paystack-signature`). Charge/subscription events persist plan state on the user document; AI routes read that profile so renewals apply without a re-login.
 
 ---
 
@@ -264,7 +271,7 @@ Keys generated once and stored in env (see [docs/SETUP.md](SETUP.md)). The serve
 
 ### Subscriptions
 
-Stored as JSON at `.data/push-subs.json` via [`lib/push/store.ts`](../lib/push/store.ts) — file-backed for dev, easy to swap for a Mongo collection. Each subscription carries `meta.habitsByTime: Record<HH:MM, string[]>` (habit titles to fire at that time, in the user's timezone).
+Stored in Mongo (`pushSubscriptions`) via [`lib/push/store.ts`](../lib/push/store.ts), with a `.data/push-subs.json` fallback when Mongo is down. Each subscription carries `meta.habitsByTime: Record<HH:MM, string[]>` (habit titles to fire at that time, in the user's timezone).
 
 ### Habit reminders
 

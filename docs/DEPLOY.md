@@ -151,16 +151,17 @@ Vercel automatically passes its built-in `Authorization: Bearer <CRON_SECRET>` h
 
 ---
 
-## Storage migration
+## Storage (MongoDB)
 
-Cairn's local-first architecture means the production deploy works *immediately* with no database. Each browser keeps its own data in `localStorage`. For multi-device sync, server-side push subscription persistence, and goal-nudge cron jobs, plug in a DB:
+Set `MONGODB_URI` in production. Cairn already uses it for:
 
-1. **MongoDB** — the URI is already in env (`MONGODB_URI`). Drop a thin client into `lib/db/client.ts`.
-2. **Replace `lib/push/store.ts`** with the same function shapes, but reading/writing a `pushSubscriptions` collection.
-3. **Replace `lib/db/users.ts`** stub with real reads/writes (`updateUserProfile`, etc.).
-4. **Mirror Zustand actions to API routes** — the store API stays unchanged; the action bodies become `fetch` calls.
+1. **User profiles + billing plan** — `lib/db/users.ts`
+2. **Synced app state** — `/api/user/data` + `StoreSync`
+3. **Push subscriptions** — `pushSubscriptions` (file fallback in `.data/` if Mongo is down)
+4. **Used magic-link tokens** — `usedTokens`
+5. **Rate-limit windows** — `rateLimits`
 
-The architecture is designed so this swap touches no UI code.
+Without Mongo the app still boots (localStorage-only), but multi-device sync, durable Pro renewals, and single-use magic links will not work.
 
 ---
 
@@ -197,19 +198,9 @@ After `vercel --prod`:
 
 ## Headers, CSP, security
 
-Cairn doesn't ship a custom CSP yet. Add one in `next.config.ts` under `async headers()` when you're ready. Recommended directives:
+Security headers (HSTS, nosniff, referrer policy, permissions policy, and a baseline CSP) ship from [`next.config.ts`](../next.config.ts).
 
-```ts
-{
-  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-  "X-Content-Type-Options": "nosniff",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-  "Content-Security-Policy": "default-src 'self'; img-src 'self' https://api.dicebear.com https://res.cloudinary.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com https://api.paystack.co https://api.cloudinary.com; font-src 'self' data:; frame-src https://checkout.paystack.com"
-}
-```
-
-(`unsafe-inline` for scripts is needed for the theme-bootstrap `<script>` in root layout; replace with a nonce when you wire one.)
+`script-src 'unsafe-inline'` is required for the theme-bootstrap `<script>` in the root layout; replace with a nonce when you wire one.
 
 ---
 

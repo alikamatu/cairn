@@ -91,11 +91,11 @@ Beyond the session cookie, three short-lived tokens use the same HMAC-SHA256 + `
 
 | Token | TTL | Single-use? | Carries |
 |---|---|---|---|
-| Magic link | 15 min | **No** (stateless) | `email`, `mode` |
+| Magic link | 15 min | **Yes** (`usedTokens` in Mongo) | `email`, `mode` |
 | Unsubscribe | none | No                | `email`, `scope` |
 | AI / API access tokens | — | planned | — |
 
-> Single-use enforcement for magic links requires a `usedTokens` collection. Not in place yet — a stolen token can be replayed until expiry.
+> Magic-link replay is blocked by inserting a SHA-256 of the token into `usedTokens` on first redeem. If Mongo is down, verification fails open so SSO/email recovery still works.
 
 ---
 
@@ -122,9 +122,9 @@ cairn_session
 
 Important: never parse the body before signing. The exact bytes matter.
 
-### Why no replay protection?
+### Replay / renewals
 
-Paystack's webhooks are idempotent against state we maintain (we don't credit accounts twice — the callback already flipped the session). When the DB layer lands, persist the event `id` and dedupe.
+Charge and subscription events update `users.profile` (`plan`, `planInterval`, `planRenewsAt`, `paystackCustomerCode`). Disables and failed invoices flip the user back to free. Event-id dedupe is still a follow-up.
 
 ---
 
@@ -168,7 +168,7 @@ lib/auth/magic-token.ts
 lib/auth/unsub-token.ts
 lib/auth/admin.ts
 lib/auth/oauth/*
-lib/ai/gemini.ts · lib/ai/prompts.ts · lib/ai/stream.ts
+lib/ai/gemini.ts · lib/ai/prompts.ts · lib/ai/stream.ts · lib/ai/guard.ts
 lib/billing/paystack.ts · lib/billing/subscription.ts
 lib/cloudinary/sign.ts
 lib/mail/resend.ts · lib/mail/templates/*
@@ -220,7 +220,7 @@ Acknowledged gaps. None of these are accidents — they're scoped for the next s
 - **Device-level session listing & revocation.** A "sign out of all sessions" button needs a DB-backed session table.
 - **Hard delete + GDPR-style data export package.** Soft-delete + per-entity export is here; an "all my data, including deleted, in one archive" endpoint is not.
 - **CSP with nonces.** Recommended directives are in [docs/DEPLOY.md](DEPLOY.md). The theme-bootstrap inline script needs a nonce-aware setup before strict CSP can ship.
-- **Rate limits.** The app relies on Vercel's edge rate-limiting; no app-level throttle on `/api/ai/*` or `/api/billing/checkout` yet.
+- **Rate limits.** App-level fixed-window limits (Mongo-backed with memory fallback) cover `/api/ai/*`, `/api/user/data` POSTs, checkout, and magic-link send/verify. Vercel edge limiting remains a second layer.
 - **Audit log.** Goals are designed to support an append-only audit log; the table doesn't exist yet.
 - **Hardware-key OAuth.** Apple Sign-In supports it; we don't currently surface the option.
 

@@ -1,13 +1,16 @@
 import { Activity, Mail, Users, ToggleRight } from "lucide-react";
+import { countUsers } from "@/lib/db/users";
 
-const CARDS = [
-  { label: "Users",           value: "—", icon: Users },
-  { label: "Active today",    value: "—", icon: Activity },
-  { label: "Emails sent (7d)", value: "—", icon: Mail },
-  { label: "Open flags",      value: "0", icon: ToggleRight },
-];
+export default async function AdminOverview() {
+  const userCount = await countUsers();
 
-export default function AdminOverview() {
+  const CARDS = [
+    { label: "Users", value: userCount > 0 ? String(userCount) : "—", icon: Users },
+    { label: "Active today", value: "—", icon: Activity },
+    { label: "Emails sent (7d)", value: "—", icon: Mail },
+    { label: "Open flags", value: "0", icon: ToggleRight },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -29,8 +32,9 @@ export default function AdminOverview() {
       <div className="rounded-2xl bg-surface-1 p-6">
         <h2 className="text-[15px] font-semibold text-fg">Heads up</h2>
         <p className="mt-1 text-[13px] text-fg-muted">
-          The admin surface is wired and gated by <code className="rounded bg-surface-2 px-1 font-mono text-[12px]">ADMIN_EMAILS</code> in
-          your env. Metrics, user search, and the error log light up with the persistence layer.
+          User list is live from MongoDB. Feature flags, deliverability, and the error log still need
+          observability wiring. Gate access with{" "}
+          <code className="rounded bg-surface-2 px-1 font-mono text-[12px]">ADMIN_EMAILS</code>.
         </p>
       </div>
     </div>
