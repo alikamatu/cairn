@@ -135,13 +135,13 @@ export default function InboxPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-x-0 bottom-6 z-40 mx-auto w-fit max-w-[92vw]"
+            className="fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 mx-auto w-auto max-w-[560px] sm:inset-x-0 sm:bottom-6 sm:w-fit sm:max-w-[92vw]"
           >
-            <div className="flex items-center gap-2 rounded-2xl bg-surface-3 p-2 shadow-[0_8px_24px_-12px_rgba(0,0,0,.45)]">
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-3 p-2 shadow-[0_8px_24px_-12px_rgba(0,0,0,.45)]">
               <span className="px-2 text-[12px] font-mono text-fg-muted">
                 {selected.size} selected
               </span>
-              <span className="h-5 w-px bg-fg-subtle/20" />
+              <span className="hidden h-5 w-px bg-fg-subtle/20 sm:block" />
               <button
                 ref={moveBtnRef}
                 type="button"
@@ -150,7 +150,9 @@ export default function InboxPage() {
                 aria-expanded={moveOpen}
                 className="inline-flex h-8 items-center gap-1.5 rounded-md bg-surface-2 px-2.5 text-[12px] font-medium text-fg-muted hover:bg-surface-1 hover:text-fg"
               >
-                <Folder size={12} strokeWidth={2} /> Move to project…
+                <Folder size={12} strokeWidth={2} />
+                <span className="sm:hidden">Move</span>
+                <span className="hidden sm:inline">Move to project…</span>
               </button>
               <Popover open={moveOpen} onOpenChange={setMoveOpen} anchor={moveBtnRef.current} align="start">
                 <ul role="listbox" className="max-h-[260px] min-w-[200px] overflow-y-auto p-1">
@@ -168,9 +170,12 @@ export default function InboxPage() {
                   ))}
                 </ul>
               </Popover>
-              <button onClick={bulkSendToToday}  className="h-8 rounded-md bg-surface-2 px-2.5 text-[12px] font-medium text-fg-muted hover:bg-surface-1 hover:text-fg">Send to today</button>
+              <button onClick={bulkSendToToday}  className="h-8 rounded-md bg-surface-2 px-2.5 text-[12px] font-medium text-fg-muted hover:bg-surface-1 hover:text-fg">
+                <span className="sm:hidden">Today</span>
+                <span className="hidden sm:inline">Send to today</span>
+              </button>
               <button onClick={bulkComplete}     className="h-8 rounded-md bg-surface-2 px-2.5 text-[12px] font-medium text-fg-muted hover:bg-surface-1 hover:text-fg">Complete</button>
-              <button onClick={bulkDelete}       className="h-8 rounded-md bg-surface-2 px-2.5 text-[12px] font-medium text-[color:var(--danger)] hover:bg-surface-1"><Trash2 size={13} strokeWidth={2} /></button>
+              <button onClick={bulkDelete}       className="h-8 rounded-md bg-surface-2 px-2.5 text-[12px] font-medium text-[color:var(--danger)] hover:bg-surface-1" aria-label="Delete"><Trash2 size={13} strokeWidth={2} /></button>
               <button onClick={clearSel}         className="h-8 rounded-md px-2.5 text-[12px] text-fg-subtle hover:text-fg">Clear</button>
             </div>
           </motion.div>

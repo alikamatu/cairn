@@ -5,7 +5,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 const SECRET = process.env.AUTH_SECRET;
 if (!SECRET) throw new Error("AUTH_SECRET is not set");
 
-const COOKIE_NAME = "osama_session";
+const COOKIE_NAME = "cairn_session";
 const TTL_DAYS = 30;
 const TTL_MS = TTL_DAYS * 24 * 60 * 60 * 1000;
 

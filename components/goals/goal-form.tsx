@@ -67,7 +67,7 @@ export function GoalFormModal({
 
         <div>
           <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-fg-subtle">Horizon</span>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {HORIZONS.map((h) => {
               const active = horizon === h.id;
               return (

@@ -13,7 +13,8 @@ import type { Task } from "@/types/entities";
 
 // ── Settings (shared storage key with the Pomodoro widget) ───────────────
 
-const STORAGE_KEY = "osama:pomodoro:v1";
+const STORAGE_KEY = "cairn:pomodoro:v1";
+const LEGACY_STORAGE_KEY = "osama:pomodoro:v1";
 type Mode = "focus" | "break";
 const DEFAULTS = { focus: 25, break: 5 } as const;
 const PRESETS = {
@@ -28,7 +29,14 @@ function clamp(n: number, lo: number, hi: number) {
 function loadSettings(): { focus: number; break: number } {
   if (typeof window === "undefined") return { ...DEFAULTS };
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
     if (!raw) return { ...DEFAULTS };
     const v = JSON.parse(raw) as Record<string, unknown>;
     return {

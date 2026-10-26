@@ -1,6 +1,8 @@
 import "server-only";
-import { getGemini, isConfigured as isGeminiConfigured, MODEL as GEMINI_MODEL } from "./gemini";
+import { getGemini, getModel, isConfigured as isGeminiConfigured } from "./gemini";
 
-export const MODEL = GEMINI_MODEL;
 export const getAnthropic = getGemini;
 export const isConfigured = isGeminiConfigured;
+export { getModel };
+/** @deprecated Prefer getModel() */
+export const MODEL = getModel();

@@ -137,7 +137,7 @@ export function CommandPalette({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-start justify-center pt-[10vh]"
+          className="fixed inset-0 z-50 flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -153,27 +153,30 @@ export function CommandPalette({
             className="absolute inset-0 bg-black/45"
           />
           <motion.div
-            className="relative z-10 w-[min(640px,92vw)] overflow-hidden rounded-2xl bg-surface-1"
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 flex w-full max-h-[min(88dvh,720px)] flex-col overflow-hidden rounded-t-2xl bg-surface-1 pb-[env(safe-area-inset-bottom)] sm:max-w-[640px]"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-center gap-2 px-4 pt-3">
-              <Search size={16} strokeWidth={1.75} className="text-fg-subtle" />
+            <div className="flex shrink-0 justify-center pt-2.5 pb-1" aria-hidden="true">
+              <span className="h-1 w-9 rounded-full bg-fg-subtle/35" />
+            </div>
+            <div className="flex items-center gap-2 px-4 pt-1">
+              <Search size={16} strokeWidth={1.75} className="shrink-0 text-fg-subtle" />
               <input
                 ref={inputRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={onKey}
                 placeholder="Type a command, page, or ask Cairn…"
-                className="block h-11 w-full bg-transparent text-[15px] text-fg outline-none placeholder:text-fg-subtle"
+                className="block h-11 w-full min-w-0 bg-transparent text-[15px] text-fg outline-none placeholder:text-fg-subtle"
                 role="combobox"
                 aria-expanded="true"
                 aria-controls="cmdk-list"
                 aria-activedescendant={filtered[active] ? `cmdk-${filtered[active].id}` : undefined}
               />
-              <kbd className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-subtle">Esc</kbd>
+              <kbd className="hidden shrink-0 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-subtle sm:inline">Esc</kbd>
             </div>
 
             <div className="h-px w-full bg-[color:var(--hairline)]" />
@@ -182,7 +185,7 @@ export function CommandPalette({
               id="cmdk-list"
               ref={listRef}
               role="listbox"
-              className="max-h-[60vh] overflow-y-auto p-2"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
             >
               {grouped.length === 0 && (
                 <div className="px-3 py-8 text-center text-[13px] text-fg-subtle">No results.</div>
@@ -234,12 +237,12 @@ export function CommandPalette({
               })}
             </div>
 
-            <footer className="flex items-center justify-between bg-surface-2 px-4 py-2 text-[11px] text-fg-subtle">
-              <div className="flex items-center gap-3">
-                <FooterKey k="↑" /> <FooterKey k="↓" /> <span>navigate</span>
-                <FooterKey k="↵" /> <span>select</span>
+            <footer className="flex shrink-0 items-center justify-between gap-3 bg-surface-2 px-4 py-2 text-[11px] text-fg-subtle">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="inline-flex items-center gap-1"><FooterKey k="↑" /> <FooterKey k="↓" /> <span>navigate</span></span>
+                <span className="inline-flex items-center gap-1"><FooterKey k="↵" /> <span>select</span></span>
               </div>
-              <span>powered by ⌘K</span>
+              <span className="hidden sm:inline">powered by ⌘K</span>
             </footer>
           </motion.div>
         </motion.div>

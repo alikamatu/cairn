@@ -8,4 +8,6 @@ export const THEMES = [
 
 export type ThemeId = (typeof THEMES)[number]["id"];
 export const DEFAULT_THEME: ThemeId = "obsidian";
-export const THEME_STORAGE_KEY = "osama:theme";
+export const THEME_STORAGE_KEY = "cairn:theme";
+/** Previous brand key — read once for migration. */
+export const LEGACY_THEME_STORAGE_KEY = "osama:theme";

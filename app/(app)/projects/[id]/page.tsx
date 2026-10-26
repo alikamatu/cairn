@@ -95,7 +95,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
           <Stat label="Open"       value={open} />
           <Stat label="Done"        value={done} />
           <Stat label="Completion"  value={`${pct}%`} />

@@ -74,7 +74,7 @@ export default function HabitDetail({ params }: { params: Promise<{ id: string }
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <Stat label="Current" value={currentStreak(habit)} suffix="days" />
               <Stat label="Best"    value={bestStreak(habit)} suffix="days" />
               <Stat label="30d rate" value={`${completionRate(habit)}%`} />
@@ -87,7 +87,7 @@ export default function HabitDetail({ params }: { params: Promise<{ id: string }
 
             <div className="rounded-2xl bg-surface-1 p-5">
               <h3 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-fg-subtle">Recent</h3>
-              <ul className="grid grid-cols-7 gap-1.5">
+              <ul className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {recentDays(14).map((d) => {
                   const k = ymd(d);
                   const isDone = Boolean(habit.checkins[k]);
@@ -113,13 +113,13 @@ export default function HabitDetail({ params }: { params: Promise<{ id: string }
           <aside className="space-y-4">
             <div className="rounded-2xl bg-surface-1 p-4">
               <h4 className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-fg-subtle">Cadence</h4>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
                 {(["daily","weekly-target","custom"] as const).map((k) => (
                   <button
                     key={k}
                     type="button"
                     onClick={() => setCadence(k)}
-                    className={`h-8 rounded-md text-[11.5px] font-medium ${habit.cadence.kind === k ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg-muted hover:text-fg"}`}
+                    className={`h-9 rounded-md px-2 text-[12px] font-medium sm:h-8 sm:text-[11.5px] ${habit.cadence.kind === k ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg-muted hover:text-fg"}`}
                   >
                     {k === "weekly-target" ? "Weekly target" : k.charAt(0).toUpperCase() + k.slice(1)}
                   </button>

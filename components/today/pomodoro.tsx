@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils/cn";
 
 type Mode = "focus" | "break";
 
-const STORAGE_KEY = "osama:pomodoro:v1";
+const STORAGE_KEY = "cairn:pomodoro:v1";
+const LEGACY_STORAGE_KEY = "osama:pomodoro:v1";
 const DEFAULTS = { focus: 25, break: 5 } as const;
 const PRESETS = {
   focus: [15, 25, 45, 60],
@@ -19,7 +20,14 @@ type Settings = { focus: number; break: number };
 function loadSettings(): Settings {
   if (typeof window === "undefined") return { ...DEFAULTS };
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        window.localStorage.setItem(STORAGE_KEY, raw);
+        window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
     if (!raw) return { ...DEFAULTS };
     const v = JSON.parse(raw) as Partial<Settings>;
     return {

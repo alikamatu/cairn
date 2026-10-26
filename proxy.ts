@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const COOKIE = "osama_session";
+const COOKIE = "cairn_session";
 
 // Edge runtime can't import node:crypto for verification; we only check presence.
 // Full verification happens in server components/actions on each request.

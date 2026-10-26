@@ -120,7 +120,7 @@ export function NoteAIPanel({
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-40 grid place-items-end sm:place-items-center sm:p-4"
+            className="fixed inset-0 z-40 flex items-end justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -132,13 +132,16 @@ export function NoteAIPanel({
             <button type="button" aria-label="Close" onClick={() => { stop(); setOpen(false); }} className="absolute inset-0 bg-black/45" />
 
             <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.985 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 flex max-h-[92vh] w-full max-w-[680px] flex-col overflow-hidden rounded-t-2xl bg-surface-1 sm:rounded-2xl"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-10 flex max-h-[min(92dvh,900px)] w-full flex-col overflow-hidden rounded-t-2xl bg-surface-1 pb-[env(safe-area-inset-bottom)] sm:max-w-[680px]"
             >
-              <header className="flex items-center gap-2 px-5 pt-5">
+              <div className="flex shrink-0 justify-center pt-2.5 pb-1" aria-hidden="true">
+                <span className="h-1 w-9 rounded-full bg-fg-subtle/35" />
+              </div>
+              <header className="flex items-center gap-2 px-5 pt-2">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent text-accent-fg">
                   <Sparkles size={14} strokeWidth={2} />
                 </span>

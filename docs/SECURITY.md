@@ -38,7 +38,7 @@ No external request modifies state without passing one of these checks.
 
 | Variable | Used for | Where it shows up |
 |---|---|---|
-| `AUTH_SECRET`               | HMAC for magic-link, session, unsubscribe tokens | Server only |
+| `AUTH_SECRET`               | HMAC for session, unsubscribe, and legacy magic-link tokens | Server only |
 | `PAYSTACK_SECRET_KEY`       | Paystack API auth + webhook signature verify       | Server only |
 | `GEMINI_API_KEY`            | Google Gemini API                                   | Server only |
 | `RESEND_API_KEY`            | Outbound email                                      | Server only |

@@ -20,9 +20,9 @@ export default function PrivacyPage() {
 
         <h2>How we use it</h2>
         <ul>
-          <li>To run the product: render your boards, send your magic-link emails, charge your subscription.</li>
+          <li>To run the product: render your boards, authenticate via SSO, charge your subscription.</li>
           <li>To improve the product in aggregate — never by reading your individual content.</li>
-          <li>To send transactional email (sign-in links, billing receipts) and, if you opt in, daily digests.</li>
+          <li>To send transactional email (billing receipts) and, if you opt in, daily digests.</li>
         </ul>
 
         <h2>What we don&apos;t do</h2>

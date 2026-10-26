@@ -52,7 +52,7 @@ export function Cheatsheet({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-center p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -68,28 +68,31 @@ export function Cheatsheet({
             className="absolute inset-0 bg-black/40"
           />
           <motion.div
-            className="relative z-10 w-[min(720px,92vw)] overflow-hidden rounded-2xl bg-surface-1"
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 flex w-full max-h-[min(92dvh,820px)] flex-col overflow-hidden rounded-t-2xl bg-surface-1 pb-[env(safe-area-inset-bottom)] sm:max-w-[720px]"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            <header className="flex items-center justify-between px-6 pt-5">
-              <div>
+            <div className="flex shrink-0 justify-center pt-2.5 pb-1" aria-hidden="true">
+              <span className="h-1 w-9 rounded-full bg-fg-subtle/35" />
+            </div>
+            <header className="flex shrink-0 items-center justify-between gap-3 px-5 pt-2 sm:px-6">
+              <div className="min-w-0">
                 <h2 className="text-[16px] font-semibold text-fg">Keyboard shortcuts</h2>
                 <p className="text-[12px] text-fg-subtle">Hit <kbd className="rounded bg-surface-2 px-1 font-mono">?</kbd> anywhere to open this.</p>
               </div>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="grid h-8 w-8 place-items-center rounded-md text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-fg-subtle hover:bg-surface-2 hover:text-fg"
                 aria-label="Close cheatsheet"
               >
                 <X size={16} strokeWidth={2} />
               </button>
             </header>
 
-            <div className="grid grid-cols-1 gap-x-8 gap-y-6 px-6 py-6 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-x-8 gap-y-6 overflow-y-auto overscroll-contain px-5 py-5 sm:grid-cols-3 sm:px-6 sm:py-6">
               {GROUPS.map((g) => (
                 <div key={g.title}>
                   <h3 className="mb-3 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-subtle">

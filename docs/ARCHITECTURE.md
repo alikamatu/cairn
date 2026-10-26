@@ -131,14 +131,15 @@ All relationships are nullable / optional — deleting a project unassigns its t
 
 ## Authentication
 
-### Magic-link flow
+### SSO (primary)
 
-1. User submits email at `/signin`.
-2. Server action [`sendMagicLink`](../app/(auth)/signin/actions.ts) signs a token with HMAC-SHA256 (`AUTH_SECRET`), sends a Resend email containing `/verify?token=…`.
-3. User clicks the link. [`/verify` route handler](../app/(auth)/verify/route.ts) validates the signature, checks expiry (15 min), and sets the session cookie.
-4. New user → `/onboarding`. Returning user → `/today`.
+Sign-in is **SSO only** — Google, GitHub, or Apple. The UI at `/signin` offers provider buttons only (no email form).
 
-The token is **stateless** — no DB lookup. Single-use can be added by writing the nonce to a `usedTokens` collection.
+1. User clicks a provider on `/signin` → [`/oauth/[provider]`](../app/(auth)/oauth/%5Bprovider%5D/route.ts) starts the OAuth dance.
+2. Callback at [`/oauth/[provider]/callback`](../app/(auth)/oauth/%5Bprovider%5D/callback/route.ts) exchanges the code, upserts the user in MongoDB, and sets the session cookie from `profile.onboarded`.
+3. New user → `/onboarding`. Returning onboarded user → `/today`.
+
+Provider configs live in [`lib/auth/oauth.ts`](../lib/auth/oauth.ts). Apple requires a private-key JWT via env vars.
 
 ### Session cookie
 
@@ -152,18 +153,18 @@ A signed JWT-shape cookie (`cairn_session`) holds:
 }
 ```
 
-Cookie is HMAC-signed with `AUTH_SECRET`, `HttpOnly`, `SameSite=Lax`, `Secure` in prod, 30-day TTL. Implementation: [`lib/auth/session.ts`](../lib/auth/session.ts).
+Cookie is HMAC-signed with `AUTH_SECRET`, `HttpOnly`, `SameSite=Lax`, `Secure` in prod, 30-day TTL. Implementation: [`lib/auth/session.ts`](../lib/auth/session.ts). Onboarding completion writes `onboarded: true` to both the cookie and MongoDB (`users.profile.onboarded`).
 
-### OAuth
+### Legacy magic-link
 
-Generic OAuth handler at [`app/(auth)/oauth/[provider]/callback/route.ts`](../app/(auth)/oauth/%5Bprovider%5D/callback/route.ts). Provider configs (Google, GitHub, Apple) live in `lib/auth/oauth/`. Apple requires a private-key JWT; the env stub is there but you'll need to fill in the credentials.
+[`sendMagicLink`](../app/(auth)/signin/actions.ts) and [`/verify`](../app/(auth)/verify/route.ts) remain in the codebase for Resend-based email sign-in, but are not exposed in the UI.
 
 ### Token kinds
 
 | Token | Algo | Secret | TTL | Used for |
 |---|---|---|---|---|
-| Magic link | HMAC-SHA256 | `AUTH_SECRET` | 15 min | Sign-in |
 | Session    | HMAC-SHA256 | `AUTH_SECRET` | 30 days | Authed cookie |
+| Magic link | HMAC-SHA256 | `AUTH_SECRET` | 15 min | Legacy email sign-in |
 | Unsubscribe | HMAC-SHA256 | `AUTH_SECRET` | — | One-click email unsubscribe |
 | Paystack webhook | HMAC-SHA512 | `PAYSTACK_SECRET_KEY` | — | Verify incoming webhooks |
 | Cron auth | shared secret | `CRON_SECRET` | — | Auth-protect `/api/cron/*` |
@@ -185,7 +186,7 @@ Admin pages additionally check `isAdmin(session.email)` against a comma-separate
 
 ### Provider
 
-Google Gemini 2.5 Flash via the official SDK (`@google/genai`). Client singleton at [`lib/ai/gemini.ts`](../lib/ai/gemini.ts).
+Google Gemini (default `gemini-3.5-flash-lite`) via the official SDK (`@google/genai`). Client singleton at [`lib/ai/gemini.ts`](../lib/ai/gemini.ts).
 
 ### Prompts
 
@@ -338,10 +339,11 @@ app/
 
   (auth)/
     layout.tsx               — Logo + ThemeSwitcher only
-    signin/page.tsx          — email + OAuth UI
-    signin/actions.ts        — sendMagicLink server action
-    verify/route.ts          — magic link verify + session set
+    signin/page.tsx          — SSO UI (Google, GitHub, Apple)
+    signin/actions.ts        — legacy sendMagicLink server action
+    verify/route.ts          — legacy magic-link verify + session set
     verify-request/page.tsx
+    session/sync/route.ts    — refresh session cookie from DB profile
     onboarding/page.tsx · onboarding/actions.ts
     oauth/[provider]/callback/route.ts
     signout/route.ts

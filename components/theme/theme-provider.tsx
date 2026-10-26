@@ -8,7 +8,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { DEFAULT_THEME, THEME_STORAGE_KEY, type ThemeId } from "@/lib/theme/themes";
+import {
+  DEFAULT_THEME,
+  LEGACY_THEME_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  type ThemeId,
+} from "@/lib/theme/themes";
 
 type ThemeContextValue = {
   theme: ThemeId;
@@ -27,7 +32,17 @@ export function ThemeProvider({
   const [theme, setThemeState] = useState<ThemeId>(initialTheme);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as ThemeId | null;
+    let stored = window.localStorage.getItem(THEME_STORAGE_KEY) as ThemeId | null;
+    if (!stored) {
+      const legacy = window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY) as ThemeId | null;
+      if (legacy) {
+        stored = legacy;
+        try {
+          window.localStorage.setItem(THEME_STORAGE_KEY, legacy);
+          window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+        } catch { /* ignore */ }
+      }
+    }
     if (stored && stored !== theme) setThemeState(stored);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -37,7 +52,10 @@ export function ThemeProvider({
 
   const setTheme = useCallback((t: ThemeId) => {
     setThemeState(t);
-    try { window.localStorage.setItem(THEME_STORAGE_KEY, t); } catch {}
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, t);
+      window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+    } catch {}
   }, []);
 
   const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);

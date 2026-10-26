@@ -4,10 +4,10 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { AuthVisual } from "@/components/auth/auth-visual";
 
 const ERROR_COPY: Record<string, string> = {
-  expired: "That sign-in link has expired. Request a new one below.",
-  invalid: "We couldn't verify that sign-in link. Try again.",
+  expired: "That sign-in session expired. Try again.",
+  invalid: "We couldn't complete sign-in. Try again.",
   oauth_denied: "Sign-in was cancelled. Try again.",
-  oauth_failed: "Something went wrong with that sign-in. Try again or use email instead.",
+  oauth_failed: "Something went wrong with that sign-in. Try another provider.",
 };
 
 export default async function SignInPage({
@@ -33,7 +33,7 @@ export default async function SignInPage({
                 Welcome back.
               </h1>
               <p className="mt-2 text-[15px] text-fg-muted">
-                Pick up where you left off — tasks, streaks, goals, and your assistant.
+                Continue with Google, GitHub, or Apple — no passwords, no forms.
               </p>
             </div>
             {errorMessage && (

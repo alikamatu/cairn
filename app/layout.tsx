@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 
@@ -80,7 +81,7 @@ export const viewport: Viewport = {
 };
 
 const themeBootstrap = `
-(function(){try{var t=localStorage.getItem("osama:theme");if(!t){t="obsidian";}document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="obsidian";}})();
+(function(){try{var t=localStorage.getItem("cairn:theme")||localStorage.getItem("osama:theme");if(!t){t="obsidian";}document.documentElement.dataset.theme=t;if(localStorage.getItem("osama:theme")&&!localStorage.getItem("cairn:theme")){localStorage.setItem("cairn:theme",t);localStorage.removeItem("osama:theme");}}catch(e){document.documentElement.dataset.theme="obsidian";}})();
 `;
 
 const jsonLd = {
@@ -108,11 +109,18 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      </head>
       <body className="min-h-full bg-bg text-fg">
+        <Script
+          id="theme-bootstrap"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeBootstrap }}
+        />
+        <Script
+          id="json-ld"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

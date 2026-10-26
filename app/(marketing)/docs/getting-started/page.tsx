@@ -6,8 +6,8 @@ export default function Page() {
 
       <h2>1. Sign in</h2>
       <p>
-        Visit <a href="/signin">the sign-in page</a> and enter your email. We send a one-time link that expires in 15 minutes.
-        No passwords. If you&apos;d rather use Google, GitHub, or Apple, those buttons are on the same page.
+        Visit <a href="/signin">the sign-in page</a> and continue with Google, GitHub, or Apple.
+        No passwords and no email forms — SSO only.
       </p>
 
       <h2>2. Onboarding</h2>

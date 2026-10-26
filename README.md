@@ -11,7 +11,7 @@ Cairn is a personal productivity app with **daily tasks**, **habit streaks**, **
 ## Quick start
 
 ```bash
-git clone https://github.com/alikamatu/osama.git cairn
+git clone https://github.com/alikamatu/cairn.git
 cd cairn
 cp .env.example .env.local        # fill in keys — see docs/SETUP.md
 npm install
@@ -67,10 +67,10 @@ You'll need accounts for Resend (email), Paystack (billing, GHS), Cloudinary (up
 Framework      Next.js 16 (App Router, Server Components, Server Actions)
 UI             React 19 · Tailwind v4 · Motion (Framer Motion successor) · Lucide
 State          Zustand with persist (localStorage)
-Auth           Magic-link email · OAuth (Google, GitHub, Apple — scaffold)
-Email          Resend
+Auth           SSO — Google, GitHub, Apple
+Email          Resend (transactional)
 Payments       Paystack (GHS) — Pro GH₵70/mo or GH₵640/yr
-AI             Google Gemini 2.5 Flash (streaming + non-streaming)
+AI             Google Gemini (streaming + non-streaming)
 Uploads        Cloudinary (signed direct upload)
 Push           Web Push Protocol with VAPID
 PWA            Custom service worker (no Workbox)

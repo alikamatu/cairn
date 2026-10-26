@@ -237,7 +237,7 @@ function StepIdentity({
         </div>
 
         {!avatars ? (
-          <div className="grid grid-cols-6 gap-3">
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 md:grid-cols-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="aspect-square animate-pulse rounded-xl bg-surface-2" />
             ))}
@@ -247,7 +247,7 @@ function StepIdentity({
             No avatars available yet.
           </div>
         ) : (
-          <div className="grid grid-cols-6 gap-3">
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 md:grid-cols-6">
             {avatars.map((a) => {
               const active = avatarId === a.id;
               return (

@@ -11,8 +11,8 @@ export default function TermsPage() {
 
         <h2>The account</h2>
         <p>
-          You&apos;re responsible for the activity on your account. Keep your email secure — anyone with access to it can
-          request a sign-in link.
+          You&apos;re responsible for the activity on your account. Keep your Google, GitHub, or Apple account secure —
+          that&apos;s how you sign in.
         </p>
 
         <h2>Acceptable use</h2>

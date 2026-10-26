@@ -99,13 +99,13 @@ export default function NewHabit() {
                 <span className="text-[11px] text-fg-muted">How often this habit counts</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {(["daily", "weekly-target", "custom"] as const).map((kind) => (
                   <button
                     key={kind}
                     type="button"
                     onClick={() => setCadenceKind(kind)}
-                    className={`h-10 rounded-md text-[13px] font-medium ${cadence.kind === kind ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg-muted hover:bg-surface-3"}`}
+                    className={`h-10 rounded-md px-2 text-[13px] font-medium ${cadence.kind === kind ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg-muted hover:bg-surface-3"}`}
                   >
                     {kind === "weekly-target" ? "Weekly target" : kind === "custom" ? "Custom days" : "Daily"}
                   </button>

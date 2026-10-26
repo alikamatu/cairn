@@ -50,5 +50,6 @@ export async function GET(req: NextRequest) {
     emailDigest: user.profile.emailDigest,
   });
 
-  return NextResponse.redirect(new URL(carry?.onboarded ? "/today" : "/onboarding", base));
+  const onboarded = user.profile.onboarded ?? false;
+  return NextResponse.redirect(new URL(onboarded ? "/today" : "/onboarding", base));
 }

@@ -19,7 +19,7 @@ Test keys work for everything except live billing.
 ## Clone & install
 
 ```bash
-git clone https://github.com/alikamatu/osama.git cairn
+git clone https://github.com/alikamatu/cairn.git
 cd cairn
 cp .env.example .env.local
 npm install
@@ -45,14 +45,14 @@ Generate the auth secret:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-### Email (magic-link sign-in)
+### Email (transactional)
 
 ```env
 RESEND_API_KEY=re_…
 RESEND_FROM_EMAIL="Cairn <noreply@your-verified-domain.com>"
 ```
 
-Without these, the sign-in form will fail. The `RESEND_FROM_EMAIL` must be a verified Resend sender domain.
+Used for digests and other transactional mail. The `RESEND_FROM_EMAIL` must be a verified Resend sender domain. Sign-in itself is SSO (Google / GitHub / Apple) — configure those OAuth env vars below.
 
 ### Billing (Paystack)
 
@@ -77,7 +77,7 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud
 
 ```env
 GEMINI_API_KEY=…
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 Without a key, AI surfaces show "AI is not configured" inline instead of failing.
@@ -110,7 +110,7 @@ ADMIN_EMAILS=you@example.com,teammate@example.com
 
 Comma-separated. Only these emails can reach `/admin/*`. Everyone else gets 404.
 
-### OAuth (optional)
+### OAuth (required for sign-in)
 
 ```env
 GOOGLE_CLIENT_ID=…

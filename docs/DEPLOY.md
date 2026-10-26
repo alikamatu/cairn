@@ -40,7 +40,7 @@ vercel link            # connect to your Vercel project (creates .vercel/)
 vercel --prod          # first deploy
 ```
 
-Or via dashboard: **Add New… → Project → Import** from GitHub → select `alikamatu/osama`. Vercel auto-detects Next.js.
+Or via dashboard: **Add New… → Project → Import** from GitHub → select `alikamatu/cairn`. Vercel auto-detects Next.js.
 
 Framework preset: **Next.js**. Build command + output: defaults. Node version: 22.x.
 
@@ -80,7 +80,7 @@ CLOUDINARY_API_SECRET
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 
 GEMINI_API_KEY               # production key
-GEMINI_MODEL                 # e.g. gemini-2.5-flash
+GEMINI_MODEL                 # e.g. gemini-3.5-flash-lite
 
 VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY

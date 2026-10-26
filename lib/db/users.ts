@@ -35,15 +35,29 @@ export const emptyUserState: UserState = {
   conversations: [],
 };
 
-export async function findOrCreateUserByEmail(
-  email: string,
-  profile: Partial<UserProfile> = {},
-): Promise<UserDoc> {
-  const normalized = email.toLowerCase();
-  const now = new Date().toISOString();
+/** Default profile fields as dotted paths — avoids Mongo parent/child path conflicts with $set. */
+function profileInsertDefaults(email: string, profile: Partial<UserProfile> = {}) {
+  const fields: Record<string, unknown> = {
+    "profile.email": email,
+    "profile.theme": profile.theme ?? "obsidian",
+    "profile.startOfWeek": profile.startOfWeek ?? "mon",
+    "profile.onboarded": profile.onboarded ?? false,
+    "profile.plan": profile.plan ?? "free",
+    "profile.planInterval": profile.planInterval ?? null,
+    "profile.planRenewsAt": profile.planRenewsAt ?? null,
+    "profile.paystackCustomerCode": profile.paystackCustomerCode ?? null,
+    "profile.emailDigest": profile.emailDigest ?? "weekly",
+  };
+  if (profile.name !== undefined) fields["profile.name"] = profile.name;
+  if (profile.avatarId !== undefined) fields["profile.avatarId"] = profile.avatarId;
+  if (profile.avatarUrl !== undefined) fields["profile.avatarUrl"] = profile.avatarUrl;
+  if (profile.timezone !== undefined) fields["profile.timezone"] = profile.timezone;
+  return fields;
+}
 
-  const defaults: UserProfile = {
-    email: normalized,
+function toProfile(email: string, profile: Partial<UserProfile> = {}): UserProfile {
+  return {
+    email,
     name: profile.name,
     avatarId: profile.avatarId,
     avatarUrl: profile.avatarUrl,
@@ -57,12 +71,21 @@ export async function findOrCreateUserByEmail(
     paystackCustomerCode: profile.paystackCustomerCode ?? null,
     emailDigest: profile.emailDigest ?? "weekly",
   };
+}
+
+export async function findOrCreateUserByEmail(
+  email: string,
+  profile: Partial<UserProfile> = {},
+): Promise<UserDoc> {
+  const normalized = email.toLowerCase();
+  const now = new Date().toISOString();
+  const defaults = toProfile(normalized, profile);
 
   try {
     const db = await getDb();
     const users = db.collection<UserDoc>("users");
 
-    // Build $set for fields that OAuth may provide on each login
+    // Only refresh OAuth identity fields on existing users — never overwrite onboarded.
     const setFields: Record<string, unknown> = { updatedAt: now };
     if (profile.name) setFields["profile.name"] = profile.name;
     if (profile.avatarUrl) setFields["profile.avatarUrl"] = profile.avatarUrl;
@@ -72,7 +95,7 @@ export async function findOrCreateUserByEmail(
       {
         $setOnInsert: {
           email: normalized,
-          profile: defaults,
+          ...profileInsertDefaults(normalized, profile),
           state: emptyUserState,
           createdAt: now,
         },
@@ -85,7 +108,14 @@ export async function findOrCreateUserByEmail(
     );
 
     if (result) {
-      return result as UserDoc;
+      // Normalize in case an older doc stored a partial profile object
+      const doc = result as UserDoc;
+      if (!doc.profile || typeof doc.profile !== "object") {
+        doc.profile = defaults;
+      } else {
+        doc.profile = { ...defaults, ...doc.profile, email: normalized };
+      }
+      return doc;
     }
   } catch (err) {
     console.warn("[db] MongoDB unavailable in findOrCreateUserByEmail, falling back to local session:", (err as Error).message);
@@ -128,7 +158,8 @@ export async function updateUserProfile(email: string, patch: Partial<UserProfil
     const db = await getDb();
     const users = db.collection<UserDoc>("users");
     const normalized = email.toLowerCase();
-    const update: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+    const now = new Date().toISOString();
+    const update: Record<string, unknown> = { updatedAt: now };
     for (const [key, value] of Object.entries(patch)) {
       if (value === undefined) continue;
       update[`profile.${key}`] = value;
@@ -137,7 +168,12 @@ export async function updateUserProfile(email: string, patch: Partial<UserProfil
       { email: normalized },
       {
         $set: update,
-        $setOnInsert: { email: normalized, profile: { email: normalized, theme: "obsidian", startOfWeek: "mon", onboarded: false }, state: emptyUserState, createdAt: new Date().toISOString() },
+        $setOnInsert: {
+          email: normalized,
+          ...profileInsertDefaults(normalized),
+          state: emptyUserState,
+          createdAt: now,
+        },
       },
       { upsert: true },
     );
@@ -155,22 +191,19 @@ export async function setUserState(email: string, state: UserState) {
   try {
     const db = await getDb();
     const users = db.collection<UserDoc>("users");
+    const normalized = email.toLowerCase();
+    const now = new Date().toISOString();
     await users.updateOne(
-      { email: email.toLowerCase() },
+      { email: normalized },
       {
         $set: {
           state,
-          updatedAt: new Date().toISOString(),
+          updatedAt: now,
         },
         $setOnInsert: {
-          email: email.toLowerCase(),
-          profile: {
-            email: email.toLowerCase(),
-            theme: "obsidian",
-            startOfWeek: "mon",
-            onboarded: false,
-          },
-          createdAt: new Date().toISOString(),
+          email: normalized,
+          ...profileInsertDefaults(normalized),
+          createdAt: now,
         },
       },
       {

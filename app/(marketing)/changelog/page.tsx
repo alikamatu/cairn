@@ -6,7 +6,7 @@ const ENTRIES: Entry[] = [
     date: "May 19, 2026",
     tag: "shipped",
     items: [
-      "Magic-link sign-in with Resend",
+      "SSO sign-in (Google, GitHub, Apple)",
       "Onboarding wizard: name, avatar, theme, timezone, start of week",
       "Today: tasks (drag-reorder), habits, pomodoro, quick-add",
       "5 themes (Obsidian, Paper, Oceanic, Sunset, Forest)",

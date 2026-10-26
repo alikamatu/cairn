@@ -29,7 +29,7 @@ export function Topbar({
           leadingIcon={<Sparkles size={16} strokeWidth={1.75} />}
           onClick={onPlanMyDay}
         >
-          Plan my day
+          Plan
         </Button>
         <Button
           size="md"

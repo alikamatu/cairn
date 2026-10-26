@@ -105,24 +105,27 @@ function MonthGrid({ cursor, tasks, habits }: { cursor: Date; tasks: ReturnType<
   return (
     <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl bg-[color:var(--hairline)]">
       {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
-        <div key={d} className="bg-surface-1 px-2 py-1.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-fg-subtle">{d}</div>
+        <div key={d} className="bg-surface-1 px-0.5 py-1.5 text-center text-[10px] font-medium uppercase tracking-[0.08em] text-fg-subtle sm:px-2 sm:text-[10.5px] sm:tracking-[0.14em]">
+          <span className="sm:hidden">{d.charAt(0)}</span>
+          <span className="hidden sm:inline">{d}</span>
+        </div>
       ))}
       {days.map((d) => {
         const inMonth = isSameMonth(d, cursor);
         const today = isSameDay(d, new Date());
         const slot = byDay.get(ymd(d));
         return (
-          <div key={d.toISOString()} className={cn("min-h-[112px] bg-bg p-1.5", !inMonth && "opacity-50")}>
+          <div key={d.toISOString()} className={cn("min-h-[72px] bg-bg p-1 sm:min-h-[96px] sm:p-1.5 md:min-h-[112px]", !inMonth && "opacity-50")}>
             <div className="mb-1 flex items-center justify-between">
               <span className={cn("inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-medium", today ? "bg-accent text-accent-fg" : "text-fg-muted")}>{d.getDate()}</span>
               {slot?.habitsDone ? (
-                <span className="inline-flex items-center gap-0.5 font-mono text-[10px] text-fg-subtle">
+                <span className="hidden items-center gap-0.5 font-mono text-[10px] text-fg-subtle sm:inline-flex">
                   <Flame size={9} strokeWidth={2.25} className="text-accent" />
                   {slot.habitsDone}
                 </span>
               ) : null}
             </div>
-            <ul className="space-y-0.5">
+            <ul className="hidden space-y-0.5 sm:block">
               {slot?.tasks.slice(0, 3).map((t) => (
                 <li key={t.id}>
                   <Link href={`/tasks/${t.id}`} className="block truncate rounded-md bg-surface-1 px-1.5 py-0.5 text-[10.5px] text-fg hover:bg-surface-2">
@@ -132,6 +135,13 @@ function MonthGrid({ cursor, tasks, habits }: { cursor: Date; tasks: ReturnType<
               ))}
               {slot && slot.tasks.length > 3 && <li className="px-1.5 font-mono text-[9px] text-fg-subtle">+{slot.tasks.length - 3} more</li>}
             </ul>
+            {slot && slot.tasks.length > 0 && (
+              <div className="mt-0.5 flex justify-center gap-0.5 sm:hidden">
+                {slot.tasks.slice(0, 3).map((t) => (
+                  <span key={t.id} className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                ))}
+              </div>
+            )}
           </div>
         );
       })}
@@ -145,8 +155,8 @@ function WeekGrid({ cursor, tasks, habits }: { cursor: Date; tasks: ReturnType<t
   const hours = Array.from({ length: 14 }).map((_, i) => i + 7); // 7am – 8pm
 
   return (
-    <div className="overflow-x-auto rounded-2xl bg-surface-1 p-3">
-      <div className="grid min-w-[840px] grid-cols-[60px_repeat(7,1fr)] gap-px bg-[color:var(--hairline)]">
+    <div className="-mx-1 overflow-x-auto rounded-2xl bg-surface-1 p-2 sm:mx-0 sm:p-3">
+      <div className="grid min-w-[640px] grid-cols-[48px_repeat(7,minmax(0,1fr))] gap-px bg-[color:var(--hairline)] sm:min-w-[840px] sm:grid-cols-[60px_repeat(7,1fr)]">
         <div className="bg-surface-1" />
         {days.map((d) => {
           const today = isSameDay(d, new Date());

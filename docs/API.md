@@ -26,9 +26,23 @@ Every server route, with shape. Cairn's API is consumed by its own client today;
 
 ## Auth
 
-### `POST` magic-link send (server action)
+Sign-in is **SSO only** (Google, GitHub, Apple). Magic-link helpers below are legacy and not linked from the UI.
 
-Not a public HTTP endpoint — called via React Server Action from the sign-in form.
+### `GET /oauth/[provider]`
+
+Starts the OAuth authorize redirect for `google` | `github` | `apple`. Sets a short-lived `oauth_state` cookie (and PKCE verifier for Google).
+
+### `GET /oauth/[provider]/callback?code=…&state=…`
+
+OAuth callback. Exchanges code, upserts the user in MongoDB, sets `cairn_session` from the DB profile (`onboarded` included), redirects to `/today` or `/onboarding`.
+
+### `GET /session/sync?next=/today`
+
+Refreshes `cairn_session` from the MongoDB user profile, then redirects. Used when the cookie is stale vs the DB (e.g. after onboarding was persisted server-side).
+
+### `POST` magic-link send (server action, legacy)
+
+Not exposed in the UI. Still callable as a React Server Action:
 
 ```ts
 sendMagicLink({ email, name?, mode: "signin" | "signup" })
@@ -37,17 +51,14 @@ sendMagicLink({ email, name?, mode: "signin" | "signup" })
 
 Sends an HMAC-signed magic-link email (15-min TTL).
 
-### `GET /verify?token=…`
+### `GET /verify?token=…` (legacy)
 
-Route handler. Validates the token, sets the session cookie, redirects:
+Validates the token, sets the session cookie, redirects:
 
-- `success` → `/onboarding` (new user) or `/today` (returning)
+- onboarded → `/today`
+- not onboarded → `/onboarding`
 - `expired` → `/signin?error=expired`
 - malformed/invalid sig → `/signin?error=invalid`
-
-### `GET /oauth/[provider]/callback?code=…&state=…`
-
-OAuth callback for `google` | `github` | `apple`. Exchanges code, fetches the user email, upserts a session.
 
 ### `GET /signout`
 

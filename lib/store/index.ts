@@ -363,8 +363,18 @@ export const useStore = create<State>()(
       };
     },
     {
-      name: "osama:store:v1",
-      storage: createJSONStorage(() => localStorage),
+      name: "cairn:store:v1",
+      storage: createJSONStorage(() => {
+        if (typeof window === "undefined") return localStorage;
+        try {
+          const legacy = localStorage.getItem("osama:store:v1");
+          if (legacy && !localStorage.getItem("cairn:store:v1")) {
+            localStorage.setItem("cairn:store:v1", legacy);
+            localStorage.removeItem("osama:store:v1");
+          }
+        } catch { /* ignore */ }
+        return localStorage;
+      }),
       version: 1,
       partialize: ({ hydrated, ...rest }) => rest,
       onRehydrateStorage: () => (state) => {

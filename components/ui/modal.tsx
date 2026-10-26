@@ -44,14 +44,9 @@ export function Modal({
     }
     window.addEventListener("keydown", onKey);
 
-    // Focus the first input/textarea (or fall back to a non-close button).
-    // The close "X" button is in the header and would otherwise win by DOM
-    // order — stealing focus from the form's autoFocus input.
     const t = setTimeout(() => {
       const root = ref.current;
       if (!root) return;
-      // If something inside the modal already has focus (e.g. an input with
-      // autoFocus), leave it alone.
       if (root.contains(document.activeElement)) return;
       const focusable =
         root.querySelector<HTMLElement>(
@@ -71,16 +66,16 @@ export function Modal({
   }, [open, onOpenChange]);
 
   const widths = {
-    sm: "w-[min(420px,92vw)]",
-    md: "w-[min(540px,92vw)]",
-    lg: "w-[min(720px,92vw)]",
+    sm: "sm:max-w-[420px]",
+    md: "sm:max-w-[540px]",
+    lg: "sm:max-w-[720px]",
   };
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-end sm:place-items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -97,19 +92,22 @@ export function Modal({
           />
           <motion.div
             ref={ref}
-            initial={{ opacity: 0, y: 16, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.985 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "relative z-10 w-full overflow-hidden rounded-t-2xl bg-surface-1 sm:rounded-2xl",
+              "relative z-10 flex w-full flex-col overflow-hidden rounded-t-2xl bg-surface-1",
+              "max-h-[min(92dvh,920px)] pb-[env(safe-area-inset-bottom)]",
               widths[size],
-              "max-h-[92vh] flex flex-col",
               className,
             )}
           >
+            <div className="flex shrink-0 justify-center pt-2.5 pb-1" aria-hidden="true">
+              <span className="h-1 w-9 rounded-full bg-fg-subtle/35" />
+            </div>
             {(title || description) && (
-              <header className="flex items-start gap-3 px-5 pt-5">
+              <header className="flex items-start gap-3 px-5 pt-2">
                 <div className="min-w-0 flex-1">
                   {title && <h2 className="text-[17px] font-semibold tracking-tight text-fg">{title}</h2>}
                   {description && <p className="mt-1 text-[13px] text-fg-muted">{description}</p>}
@@ -126,7 +124,7 @@ export function Modal({
                 </button>
               </header>
             )}
-            <div className="flex-1 overflow-y-auto px-5 pb-5 pt-4">{children}</div>
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-5 pt-4">{children}</div>
           </motion.div>
         </motion.div>
       )}

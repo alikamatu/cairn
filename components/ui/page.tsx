@@ -12,19 +12,19 @@ export function PageHeader({
   icon?: LucideIcon;
 }) {
   return (
-    <header className="flex items-start justify-between gap-6 px-6 pb-4 pt-6 md:px-10 md:pt-10">
-      <div className="flex items-start gap-3">
+    <header className="flex flex-col gap-4 px-6 pb-4 pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6 md:px-10 md:pt-10">
+      <div className="flex min-w-0 items-start gap-3">
         {Icon && (
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface-1 text-accent">
             <Icon size={18} strokeWidth={1.75} />
           </span>
         )}
-        <div>
+        <div className="min-w-0">
           <motion.h1
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[26px] font-semibold tracking-tight text-fg md:text-[30px]"
+            className="text-[24px] font-semibold tracking-tight text-fg sm:text-[26px] md:text-[30px]"
           >
             {title}
           </motion.h1>
@@ -33,13 +33,13 @@ export function PageHeader({
           )}
         </div>
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">{actions}</div>}
     </header>
   );
 }
 
 export function PageBody({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-6 pb-10 md:px-10 ${className ?? ""}`}>{children}</div>;
+  return <div className={`px-4 pb-24 sm:px-6 md:px-10 md:pb-10 ${className ?? ""}`}>{children}</div>;
 }
 
 export function Empty({

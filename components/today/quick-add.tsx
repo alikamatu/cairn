@@ -49,7 +49,7 @@ export function QuickAdd({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-start justify-center pt-[12vh]"
+          className="fixed inset-0 z-50 flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -64,21 +64,26 @@ export function QuickAdd({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className="relative z-10 w-[min(560px,92vw)] overflow-hidden rounded-2xl bg-surface-1"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 w-full overflow-hidden rounded-t-2xl bg-surface-1 pb-[env(safe-area-inset-bottom)] sm:max-w-[560px]"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-center gap-2 px-4 pt-3">
-              <KindChip active={kind === "task"}   onClick={() => setKind("task")}   icon={<CheckSquare size={13} strokeWidth={2} />}>Task</KindChip>
-              <KindChip active={kind === "habit"}  onClick={() => setKind("habit")}  icon={<Repeat size={13} strokeWidth={2} />}>Habit</KindChip>
-              <KindChip active={kind === "goal"}   onClick={() => setKind("goal")}   icon={<Flag size={13} strokeWidth={2} />}>Goal</KindChip>
-              <KindChip active={kind === "inbox"}  onClick={() => setKind("inbox")}  icon={<Inbox size={13} strokeWidth={2} />}>Inbox</KindChip>
+            <div className="flex justify-center pt-2.5 pb-1" aria-hidden="true">
+              <span className="h-1 w-9 rounded-full bg-fg-subtle/35" />
+            </div>
+            <div className="flex items-start gap-2 px-4 pt-1">
+              <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                <KindChip active={kind === "task"}   onClick={() => setKind("task")}   icon={<CheckSquare size={13} strokeWidth={2} />}>Task</KindChip>
+                <KindChip active={kind === "habit"}  onClick={() => setKind("habit")}  icon={<Repeat size={13} strokeWidth={2} />}>Habit</KindChip>
+                <KindChip active={kind === "goal"}   onClick={() => setKind("goal")}   icon={<Flag size={13} strokeWidth={2} />}>Goal</KindChip>
+                <KindChip active={kind === "inbox"}  onClick={() => setKind("inbox")}  icon={<Inbox size={13} strokeWidth={2} />}>Inbox</KindChip>
+              </div>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="ml-auto grid h-7 w-7 place-items-center rounded-md text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-fg-subtle hover:bg-surface-2 hover:text-fg"
                 aria-label="Close"
               >
                 <X size={14} strokeWidth={2} />
@@ -99,7 +104,7 @@ export function QuickAdd({
               className="block w-full bg-transparent px-4 py-4 text-[17px] text-fg outline-none placeholder:text-fg-subtle"
             />
 
-            <div className="flex items-center justify-between bg-surface-2 px-4 py-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-surface-2 px-4 py-2.5">
               <span className="text-[11px] text-fg-subtle">
                 Press <kbd className="rounded bg-surface-3 px-1 py-0.5 font-mono">↵</kbd> to save · <kbd className="rounded bg-surface-3 px-1 py-0.5 font-mono">Esc</kbd> to close
               </span>

@@ -1,12 +1,12 @@
 import "server-only";
-import { getGemini, MODEL } from "./gemini";
+import { getGemini, getModel } from "./gemini";
 
 /**
  * Translate raw Gemini SDK errors into clean, user-facing messages.
  * Returns either markdown (for streaming consumers) or a short string.
  */
 export type AiFailure = {
-  kind: "no_credit" | "no_key" | "rate_limit" | "auth" | "overloaded" | "unknown";
+  kind: "no_credit" | "no_key" | "rate_limit" | "auth" | "overloaded" | "network" | "model" | "unknown";
   title: string;
   body: string;
 };
@@ -28,8 +28,22 @@ export function classifyAiError(err: unknown): AiFailure {
   if (lower.includes("rate limit") || lower.includes("rate_limit") || lower.includes("429")) {
     return { kind: "rate_limit", title: "Hit a rate limit", body: "Gemini is asking us to slow down. Try again in a minute." };
   }
-  if (lower.includes("api_key_invalid") || lower.includes("authentication") || lower.includes("401") || lower.includes("403") || lower.includes("permission_denied")) {
+  if (lower.includes("api_key_invalid") || lower.includes("access_token_type_unsupported") || lower.includes("unauthenticated") || lower.includes("401") || lower.includes("403") || lower.includes("permission_denied")) {
     return { kind: "auth", title: "AI key rejected", body: "Google Gemini didn't accept your API key. Check GEMINI_API_KEY and try again." };
+  }
+  if (lower.includes("no longer available") || lower.includes("not found") || (lower.includes("404") && lower.includes("model"))) {
+    return {
+      kind: "model",
+      title: "Model unavailable",
+      body: `The configured model (${getModel()}) isn't available. Set GEMINI_MODEL to gemini-3.5-flash-lite or gemini-3.8-flash.`,
+    };
+  }
+  if (lower.includes("fetch failed") || lower.includes("network") || lower.includes("econnreset") || lower.includes("etimedout") || lower.includes("timeout") || lower.includes("socket")) {
+    return {
+      kind: "network",
+      title: "Couldn't reach Gemini",
+      body: "Network request to Google failed. Check your connection and try again.",
+    };
   }
   if (lower.includes("overloaded") || lower.includes("503") || lower.includes("unavailable") || lower.includes("500")) {
     return { kind: "overloaded", title: "Gemini is overloaded", body: "Try again in a moment." };
@@ -87,7 +101,7 @@ export function streamCompletion(args: {
       try {
         const contents = toGeminiContents(args.messages);
         const responseStream = await client.models.generateContentStream({
-          model: MODEL,
+          model: getModel(),
           contents,
           config: {
             systemInstruction: args.system,
@@ -120,7 +134,7 @@ export async function complete(args: {
   if (!client) throw new Error("Gemini API key not configured.");
   const contents = toGeminiContents(args.messages);
   const res = await client.models.generateContent({
-    model: MODEL,
+    model: getModel(),
     contents,
     config: {
       systemInstruction: args.system,

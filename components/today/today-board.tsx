@@ -55,11 +55,11 @@ export function TodayBoard({ greeting, date }: { greeting: string; date: string 
         onPlanMyDay={() => setPlanOpen(true)}
       />
 
-      <div className="grid grid-cols-1 gap-6 px-6 pb-10 md:px-10 lg:grid-cols-[1fr_320px]">
-        <main className="space-y-6 min-w-0">
+      <div className="grid grid-cols-1 gap-6 px-4 pb-24 sm:px-6 md:px-10 md:pb-10 lg:grid-cols-[1fr_320px]">
+        <main className="min-w-0 space-y-6">
           <DailyQuote />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <ProgressCard label="Tasks"  value={`${completed} / ${todayTasks.length}`} pct={taskPct} />
             <ProgressCard label="Habits" value={`${habitDone} / ${habits.length}`}     pct={habitPct} />
           </div>

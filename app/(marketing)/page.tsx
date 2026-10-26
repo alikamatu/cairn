@@ -38,7 +38,7 @@ export default async function Landing() {
             Your calmest week starts today.
           </h2>
           <p className="mx-auto mt-3 max-w-[48ch] text-[15px] leading-relaxed text-fg-muted">
-            One sign-in link to your inbox. No credit card. No friction.
+            Sign in with Google, GitHub, or Apple. No credit card. No friction.
           </p>
           <Link
             href="/signin"
