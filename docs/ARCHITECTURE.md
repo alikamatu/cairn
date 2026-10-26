@@ -429,7 +429,7 @@ lib/
     search.ts                — cross-entity fuzzy search
   command/commands.ts        — command-palette registry + fuzzy scorer
   ai/
-    anthropic.ts · prompts.ts · stream.ts · client.ts · context.ts
+    gemini.ts · prompts.ts · stream.ts · client.ts · context.ts
   billing/paystack.ts · plans.ts · subscription.ts
   cloudinary/sign.ts
   push/store.ts · client.ts
