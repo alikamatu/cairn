@@ -14,6 +14,7 @@ Every server route, with shape. Cairn's API is consumed by its own client today;
 
 - [Auth](#auth)
 - [Onboarding](#onboarding)
+- [User data sync](#user-data-sync)
 - [Avatars](#avatars)
 - [Uploads](#uploads)
 - [Billing](#billing)
@@ -53,12 +54,29 @@ Sends an HMAC-signed magic-link email (15-min TTL).
 
 ### `GET /verify?token=…` (legacy)
 
-Validates the token, sets the session cookie, redirects:
+Validates the token (single-use via `usedTokens`), sets the session cookie, redirects:
 
 - onboarded → `/today`
 - not onboarded → `/onboarding`
 - `expired` → `/signin?error=expired`
+- already used → `/signin?error=used`
 - malformed/invalid sig → `/signin?error=invalid`
+
+---
+
+## User data sync
+
+### `GET /api/user/data`
+
+Returns `{ state, stateUpdatedAt }` for the signed-in user. `state` is `null` when empty/unset.
+
+### `POST /api/user/data`
+
+Body: entity snapshot (Zod-validated) plus optional `baseUpdatedAt` for optimistic concurrency.
+
+- `200 { ok: true, stateUpdatedAt }`
+- `409 { error: "conflict", state, stateUpdatedAt }` when `baseUpdatedAt` is stale
+- `429` when rate-limited
 
 ### `GET /signout`
 
@@ -232,7 +250,7 @@ Sends a "Push notifications are working" notification to every device subscribed
 
 ## AI
 
-All endpoints require auth. All accept a `context` envelope so the model sees real data.
+All endpoints require auth **and an active Pro plan in production** (`402 { "error": "pro_required" }` otherwise). They are also rate-limited (`429`). All accept a `context` envelope so the model sees real data.
 
 ### Context shape
 

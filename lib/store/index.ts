@@ -8,6 +8,7 @@ import type {
   Priority, Project, Review, ReviewKind, Task, TaskStatus, TrashableKind,
 } from "@/types/entities";
 import { TRASH_RETENTION_DAYS } from "@/types/entities";
+import { emptyPersistedState } from "./persist";
 import { buildSeed } from "./seed";
 
 type State = {
@@ -78,9 +79,8 @@ const now = () => new Date().toISOString();
 export const useStore = create<State>()(
   persist(
     (set, get) => {
-      const seed = buildSeed();
       return {
-        ...seed,
+        ...emptyPersistedState,
         hydrated: false,
 
         // ─── tasks ───────────────────────────────────────────────

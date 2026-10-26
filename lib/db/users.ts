@@ -21,6 +21,17 @@ export type UserDoc = {
   email: string;
   profile: UserProfile;
   state: UserState;
+  /** Revision for optimistic concurrency on `state` writes. */
+  stateUpdatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UserListItem = {
+  email: string;
+  name?: string;
+  plan: string;
+  onboarded: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -187,17 +198,54 @@ export async function getUserState(email: string): Promise<UserState | null> {
   return user?.state ?? null;
 }
 
-export async function setUserState(email: string, state: UserState) {
+export async function getUserStateWithMeta(email: string): Promise<{
+  state: UserState | null;
+  stateUpdatedAt: string | null;
+} | null> {
+  const user = await getUserByEmail(email);
+  if (!user) return { state: null, stateUpdatedAt: null };
+  return {
+    state: user.state ?? null,
+    stateUpdatedAt: user.stateUpdatedAt ?? user.updatedAt ?? null,
+  };
+}
+
+/**
+ * Persist user state. When `baseUpdatedAt` is provided and does not match the
+ * server revision, returns `{ conflict: true, ... }` without writing.
+ */
+export async function setUserState(
+  email: string,
+  state: UserState,
+  baseUpdatedAt?: string | null,
+): Promise<
+  | { ok: true; stateUpdatedAt: string }
+  | { ok: false; conflict: true; state: UserState; stateUpdatedAt: string }
+  | { ok: false; conflict: false }
+> {
   try {
     const db = await getDb();
     const users = db.collection<UserDoc>("users");
     const normalized = email.toLowerCase();
     const now = new Date().toISOString();
+    const existing = await users.findOne({ email: normalized });
+    const serverRev = existing?.stateUpdatedAt ?? existing?.updatedAt ?? null;
+
+    if (baseUpdatedAt != null && serverRev != null && baseUpdatedAt !== serverRev) {
+      return {
+        ok: false,
+        conflict: true,
+        state: existing?.state ?? emptyUserState,
+        stateUpdatedAt: serverRev,
+      };
+    }
+
     await users.updateOne(
       { email: normalized },
       {
         $set: {
           state,
+          stateUpdatedAt: now,
           updatedAt: now,
         },
         $setOnInsert: {
@@ -206,11 +254,51 @@ export async function setUserState(email: string, state: UserState) {
           createdAt: now,
         },
       },
-      {
-        upsert: true,
-      },
+      { upsert: true },
     );
+    return { ok: true, stateUpdatedAt: now };
   } catch (err) {
     console.warn("[db] MongoDB unavailable in setUserState:", (err as Error).message);
+    return { ok: false, conflict: false };
   }
+}
+
+export async function listUsers(limit = 100): Promise<UserListItem[]> {
+  try {
+    const db = await getDb();
+    const users = db.collection<UserDoc>("users");
+    const docs = await users
+      .find({}, { projection: { email: 1, profile: 1, createdAt: 1, updatedAt: 1 } })
+      .sort({ updatedAt: -1 })
+      .limit(limit)
+      .toArray();
+    return docs.map((d) => ({
+      email: d.email,
+      name: d.profile?.name,
+      plan: d.profile?.plan ?? "free",
+      onboarded: Boolean(d.profile?.onboarded),
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+    }));
+  } catch (err) {
+    console.warn("[db] MongoDB unavailable in listUsers:", (err as Error).message);
+    return [];
+  }
+}
+
+export async function countUsers(): Promise<number> {
+  try {
+    const db = await getDb();
+    return await db.collection("users").countDocuments();
+  } catch {
+    return 0;
+  }
+}
+
+/** Apply a Paystack-derived billing change onto the users collection. */
+export async function applyBillingProfile(
+  email: string,
+  patch: Partial<Pick<UserProfile, "plan" | "planInterval" | "planRenewsAt" | "paystackCustomerCode">>,
+) {
+  await updateUserProfile(email, patch);
 }

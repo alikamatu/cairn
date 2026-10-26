@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { getSession } from "@/lib/auth/session";
 import { GoalCtx, HabitCtx, TaskCtx, UserCtx } from "@/lib/ai/context";
 import { chatSystem } from "@/lib/ai/prompts";
 import { streamCompletion } from "@/lib/ai/stream";
+import { guardAiRoute } from "@/lib/ai/guard";
 
 const Input = z.object({
   messages: z.array(z.object({
@@ -18,8 +18,9 @@ const Input = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) return new Response("unauthorized", { status: 401 });
+  const gate = await guardAiRoute();
+  if (!gate.ok) return gate.response;
+  const { session } = gate;
 
   const json = await req.json().catch(() => null);
   const parsed = Input.safeParse(json);

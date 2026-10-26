@@ -5,6 +5,7 @@ import { z } from "zod";
 import { resend, FROM_EMAIL } from "@/lib/mail/resend";
 import { magicLinkEmail } from "@/lib/mail/templates/magic-link";
 import { signMagicToken, MAGIC_TOKEN_TTL_MINUTES } from "@/lib/auth/magic-token";
+import { rateLimit } from "@/lib/rate-limit";
 
 const InputSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
@@ -22,6 +23,11 @@ export async function sendMagicLink(input: unknown): Promise<SendMagicLinkResult
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
   const { email, mode } = parsed.data;
+
+  const limited = await rateLimit(`magic-send:${email}`, 5, 15 * 60_000);
+  if (!limited.allowed) {
+    return { ok: false, error: "Too many sign-in emails. Try again in a few minutes." };
+  }
 
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";

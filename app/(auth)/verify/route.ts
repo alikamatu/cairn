@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyMagicToken } from "@/lib/auth/magic-token";
+import { consumeMagicToken } from "@/lib/auth/used-tokens";
 import { getSession, setSessionCookie } from "@/lib/auth/session";
 import { findOrCreateUserByEmail } from "@/lib/db/users";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
   const base = process.env.APP_URL ?? req.nextUrl.origin;
@@ -11,10 +13,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/signin?error=invalid", base));
   }
 
+  const limited = await rateLimit(`magic-verify:${req.headers.get("x-forwarded-for") ?? "ip"}`, 30, 60_000);
+  if (!limited.allowed) {
+    return NextResponse.redirect(new URL("/signin?error=rate_limited", base));
+  }
+
   const result = verifyMagicToken(token);
   if (!result.ok) {
     const reason = result.reason === "expired" ? "expired" : "invalid";
     return NextResponse.redirect(new URL(`/signin?error=${reason}`, base));
+  }
+
+  const fresh = await consumeMagicToken(token, result.expiresAt);
+  if (!fresh) {
+    return NextResponse.redirect(new URL("/signin?error=used", base));
   }
 
   const existing = await getSession();

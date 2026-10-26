@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSession } from "@/lib/auth/session";
 import { UserCtx } from "@/lib/ai/context";
 import { breakdownSystem } from "@/lib/ai/prompts";
 import { complete, classifyAiError } from "@/lib/ai/stream";
+import { guardAiRoute } from "@/lib/ai/guard";
 
 const Input = z.object({
   title: z.string().min(1).max(280),
@@ -12,8 +12,14 @@ const Input = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const gate = await guardAiRoute();
+  if (!gate.ok) {
+    if (gate.response.headers.get("content-type")?.includes("application/json")) {
+      return gate.response;
+    }
+    return NextResponse.json({ error: "unauthorized" }, { status: gate.response.status });
+  }
+  const { session } = gate;
 
   const json = await req.json().catch(() => null);
   const parsed = Input.safeParse(json);

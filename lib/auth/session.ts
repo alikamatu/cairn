@@ -6,6 +6,8 @@ const SECRET = process.env.AUTH_SECRET;
 if (!SECRET) throw new Error("AUTH_SECRET is not set");
 
 const COOKIE_NAME = "cairn_session";
+/** Pre-rebrand cookie — still accepted and migrated on read. */
+const LEGACY_COOKIE_NAME = "osama_session";
 const TTL_DAYS = 30;
 const TTL_MS = TTL_DAYS * 24 * 60 * 60 * 1000;
 
@@ -78,6 +80,27 @@ export async function setSessionCookie(session: Omit<Session, "iat" | "exp">) {
 export async function getSession(): Promise<Session | null> {
   const jar = await cookies();
   const raw = jar.get(COOKIE_NAME)?.value;
+  const legacy = jar.get(LEGACY_COOKIE_NAME)?.value;
+
+  if (!raw && legacy) {
+    const session = verifySessionToken(legacy);
+    if (!session) return null;
+    // Migrate when the cookie store is writable (route handlers / actions).
+    try {
+      jar.set(COOKIE_NAME, legacy, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: Math.max(0, Math.floor((session.exp - Date.now()) / 1000)),
+      });
+      jar.set(LEGACY_COOKIE_NAME, "", { path: "/", maxAge: 0 });
+    } catch {
+      /* read-only Server Component context */
+    }
+    return session;
+  }
+
   if (!raw) return null;
   return verifySessionToken(raw);
 }

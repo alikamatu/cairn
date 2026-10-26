@@ -26,7 +26,7 @@ export function signMagicToken(email: string, mode: "signin" | "signup"): string
 }
 
 export type VerifyResult =
-  | { ok: true; email: string; mode: "signin" | "signup" }
+  | { ok: true; email: string; mode: "signin" | "signup"; expiresAt: number }
   | { ok: false; reason: "malformed" | "bad-signature" | "expired" };
 
 export function verifyMagicToken(token: string): VerifyResult {
@@ -45,7 +45,7 @@ export function verifyMagicToken(token: string): VerifyResult {
       e: string; m: "signin" | "signup"; x: number;
     };
     if (Date.now() > payload.x) return { ok: false, reason: "expired" };
-    return { ok: true, email: payload.e, mode: payload.m };
+    return { ok: true, email: payload.e, mode: payload.m, expiresAt: payload.x };
   } catch {
     return { ok: false, reason: "malformed" };
   }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { buildReference, initTransaction } from "@/lib/billing/paystack";
 import { CURRENCY, intervalAmountMinor } from "@/lib/billing/plans";
+import { rateLimit } from "@/lib/rate-limit";
 
 const InputSchema = z.object({
   interval: z.enum(["monthly", "yearly"]),
@@ -11,6 +12,14 @@ const InputSchema = z.object({
 export async function POST(req: Request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const limited = await rateLimit(`checkout:${session.email}`, 10, 60_000);
+  if (!limited.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } },
+    );
+  }
 
   const json = await req.json().catch(() => ({}));
   const parsed = InputSchema.safeParse(json);
